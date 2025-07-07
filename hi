@@ -1,0 +1,49 @@
+-- Clone tools from other players
+local function copyTools()
+    for _, player in pairs(game.Players:GetPlayers()) do
+        if player ~= lp then
+            for _, container in pairs({player:FindFirstChild("Backpack"), player.Character}) do
+                if container then
+                    for _, tool in pairs(container:GetChildren()) do
+                        if isTool(tool) and isAllowedTool(tool.Name) and not lp.Backpack:FindFirstChild(tool.Name) then
+                            local cloned = tool:Clone()
+
+                            -- Re-enable all scripts and ensure structure is intact
+                            for _, descendant in pairs(cloned:GetDescendants()) do
+                                if descendant:IsA("Script") or descendant:IsA("LocalScript") then
+                                    descendant.Disabled = false
+                                end
+                            end
+
+                            -- Confirm it has a Handle
+                            if not cloned:FindFirstChild("Handle") then
+                                warn("[AutoCopyTools] Cloned tool is missing a Handle:", tool.Name)
+                            end
+
+                            -- Parent to Backpack
+                            cloned.Parent = lp:FindFirstChild("Backpack")
+
+                            -- Also clone into StarterGear if available (for persistence after reset)
+                            local starterGear = lp:FindFirstChild("StarterGear")
+                            if starterGear and not starterGear:FindFirstChild(cloned.Name) then
+                                local gearClone = cloned:Clone()
+
+                                -- Make sure scripts in the StarterGear clone are also enabled
+                                for _, descendant in pairs(gearClone:GetDescendants()) do
+                                    if descendant:IsA("Script") or descendant:IsA("LocalScript") then
+                                        descendant.Disabled = false
+                                    end
+                                end
+
+                                gearClone.Parent = starterGear
+                            end
+
+                            print("[AutoCopyTools] Cloned functional tool:", tool.Name)
+                            notify("Cloned: " .. tool.Name)
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
